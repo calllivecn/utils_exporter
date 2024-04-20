@@ -1,0 +1,19 @@
+[exporter_conf]
+address="0.0.0.0"
+port=19100
+# 指标更新间隔 单位 秒
+interval=3600
+
+# 这是配置第一个实例
+[[jms]]
+# https://justmysocks6.net/members/getbwcounter.php?service=xxxxx&id=xxxxx-xxxxxxx-xxxxxxx-xxxxxxxxxx
+url="https://justmysocks5.net/members/getbwcounter.php?service=509249&id=cce18e6c-08db-409a-872c-61b03896f386"
+# 给实例起个名字
+name="zx jms1"
+
+
+# 这是配置第二个实例
+#[[jms]]
+#url=
+#name="jms2"
+
