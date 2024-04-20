@@ -3,6 +3,7 @@
 import sys
 import time
 import json
+import traceback
 import argparse
 from pathlib import Path
 from urllib import request
@@ -66,7 +67,18 @@ def get(url, headers={"User-Agent": "curl/7.81.0"}):
     return: {'monthly_bw_limit_b': 500000000000, 'bw_counter_b': 75678957390, 'bw_reset_day_of_month': 13}
     """
     req = request.Request(url, headers=headers, method="GET")
-    data = request.urlopen(req, timeout=30)
+
+    while True:
+        try:
+            data = request.urlopen(req, timeout=30)
+        except Exception as e:
+            traceback.print_exception(e)
+
+            time.sleep(30)
+            continue
+
+        break
+
     context = data.read()
     return json.loads(context)
 
