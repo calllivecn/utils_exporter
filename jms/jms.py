@@ -5,6 +5,7 @@ import time
 import json
 import traceback
 import argparse
+import dataclasses
 from pathlib import Path
 from urllib import request
 
@@ -83,31 +84,41 @@ def get(url, headers={"User-Agent": "curl/7.81.0"}):
     return json.loads(context)
 
 
+@dataclasses.dataclass
+class NameURL:
+    name: str
+    url: str
+
 
 class JMS:
 
     labels=["name"]
 
-    def __init__(self, name, url):
-        self.name = name
-        self.url = url
+    def __init__(self, nameurl: List[NameURL]):
+        self._list_name_url = nameurl
         
         self.total = Gauge("jms_total_bytes", "总共量", self.labels)
         self.usage = Gauge("jms_usage_bytes", "已使用量", self.labels)
         self.reset_day = Gauge("jms_reset_day", "jms 套餐信息, 每月重置日。", self.labels)
+    
+
+    def update_all(self):
+        for jms in self._list_name_url:
+            self.__update(jms)
 
     
-    def update(self):
-        result = get(self.url)
+    def __update(self, nameurl: NameURL):
+        
+        result = get(nameurl.name)
 
         total = result["monthly_bw_limit_b"]
         usage = result["bw_counter_b"]
         reset_day = result["bw_reset_day_of_month"] 
 
 
-        self.total.labels(name=self.name).set(total)
-        self.usage.labels(name=self.name).set(usage)
-        self.reset_day.labels(name=self.name).set(reset_day)
+        self.total.labels(name=nameurl.name).set(total)
+        self.usage.labels(name=nameurl.name).set(usage)
+        self.reset_day.labels(name=nameurl.name).set(reset_day)
 
 
 
@@ -136,7 +147,10 @@ def main():
     # 生成实例
     JMSS = []
     for jms in conf.get("jms"):
-        JMSS.append(JMS(jms["name"], jms["url"]))
+        JMSS.append(NameURL(name=jms["name"], url=jms["url"]))
+    
+    # 生成
+    jms = JMS(JMSS)
 
 
     # 启动iexporter server
@@ -144,9 +158,7 @@ def main():
 
     while True:
         # jms实例
-        for jms in JMSS:
-            jms.update()
-        
+        jms.update_all()
         time.sleep(update_interval)
 
 
