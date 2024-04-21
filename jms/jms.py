@@ -109,7 +109,7 @@ class JMS:
     
     def __update(self, nameurl: NameURL):
         
-        result = get(nameurl.name)
+        result = get(nameurl.url)
 
         total = result["monthly_bw_limit_b"]
         usage = result["bw_counter_b"]
@@ -145,12 +145,12 @@ def main():
     update_interval = float(conf["exporter_conf"].get("interval"))
 
     # 生成实例
-    JMSS = []
+    jmss = []
     for jms in conf.get("jms"):
-        JMSS.append(NameURL(name=jms["name"], url=jms["url"]))
+        jmss.append(NameURL(name=jms["name"], url=jms["url"]))
     
     # 生成
-    jms = JMS(JMSS)
+    jms = JMS(jmss)
 
 
     # 启动iexporter server
