@@ -142,7 +142,7 @@ def main():
     server_addr = conf["exporter_conf"].get("address")
     server_port = conf["exporter_conf"].get("port")
 
-    update_interval = float(conf["exporter_conf"].get("interval"))
+    update_interval = conf["exporter_conf"].get("interval")
 
     # 生成实例
     jmss = []
