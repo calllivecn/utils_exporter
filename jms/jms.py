@@ -38,6 +38,11 @@ port=19100
 # 指标更新间隔 单位 秒
 interval=30
 
+# 配置代理
+#proxy="http://user:pass@host:port"
+#proxy="socks5://user:pass@host:port"
+
+
 # 这是配置第一个实例
 [[jms]]
 # https://justmysocks6.net/members/getbwcounter.php?service=xxxxx&id=xxxxx-xxxxxxx-xxxxxxx-xxxxxxxxxx
@@ -89,9 +94,9 @@ def get(url, headers={"User-Agent": "curl/7.81.0"}):
 
 
 class AsyncGet:
-    def __init__(self):
+    def __init__(self, proxy: str = None):
 
-        self._aclient = httpx.AsyncClient(http2=True)
+        self._aclient = httpx.AsyncClient(http2=True, proxy=proxy)
 
 
     async def get(self, url, headers={"User-Agent": "curl/7.81.0"}):
@@ -114,7 +119,7 @@ class JMS:
 
     labels=["name"]
 
-    def __init__(self, nameurl: List[NameURL]):
+    def __init__(self, nameurl: List[NameURL], proxy: str):
         self._list_name_url = nameurl
         
         self.total = Gauge("jms_total_bytes", "总共量", self.labels)
@@ -122,7 +127,7 @@ class JMS:
         self.reset_day = Gauge("jms_reset_day", "jms 套餐信息, 每月重置日。", self.labels)
 
         # 之后想要使用asyncio
-        self._a_get = AsyncGet()
+        self._a_get = AsyncGet(proxy)
     
 
     def update_all(self):
@@ -197,8 +202,10 @@ def main():
     for jms in conf.get("jms"):
         jmss.append(NameURL(name=jms["name"], url=jms["url"]))
     
+    proxy = conf["exporter_conf"].get("proxy")
+    
     # 生成
-    jms = JMS(jmss)
+    jms = JMS(jmss, proxy)
 
     # 启动iexporter server
     wsgi, thread = start_http_server(port=server_port, addr=server_addr)
@@ -212,6 +219,8 @@ def main():
     """
 
     asyncio.run(jms.a_update_all(update_interval))
+
+    jms._a_get.aclose()
 
 
 if __name__ == "__main__":
