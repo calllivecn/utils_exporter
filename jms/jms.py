@@ -3,6 +3,7 @@
 import sys
 import time
 import json
+import asyncio
 import traceback
 import argparse
 import dataclasses
@@ -18,6 +19,9 @@ try:
     import tomllib
 except ModuleNotFoundError:
     import tomli as tomllib
+
+
+import httpx
 
 
 from prometheus_client import (
@@ -84,6 +88,22 @@ def get(url, headers={"User-Agent": "curl/7.81.0"}):
     return json.loads(context)
 
 
+class AsyncGet:
+    def __init__(self):
+
+        self._aclient = httpx.AsyncClient(http2=True)
+
+
+    async def get(self, url, headers={"User-Agent": "curl/7.81.0"}):
+
+        result = await self._aclient.get(url, headers=headers)
+        return result.json()
+    
+
+    async def aclose(self):
+        await self._aclient.aclose()
+
+
 @dataclasses.dataclass
 class NameURL:
     name: str
@@ -100,11 +120,24 @@ class JMS:
         self.total = Gauge("jms_total_bytes", "总共量", self.labels)
         self.usage = Gauge("jms_usage_bytes", "已使用量", self.labels)
         self.reset_day = Gauge("jms_reset_day", "jms 套餐信息, 每月重置日。", self.labels)
+
+        # 之后想要使用asyncio
+        self._a_get = AsyncGet()
     
 
     def update_all(self):
         for jms in self._list_name_url:
             self.__update(jms)
+    
+
+    async def a_update_all(self, sleep_: float):
+
+        while True:
+
+            tasks = (self.__a_update(jms) for jms in self._list_name_url)
+
+            await asyncio.gather(*tasks)
+            await asyncio.sleep(sleep_)
 
     
     def __update(self, nameurl: NameURL):
@@ -119,6 +152,21 @@ class JMS:
         self.total.labels(name=nameurl.name).set(total)
         self.usage.labels(name=nameurl.name).set(usage)
         self.reset_day.labels(name=nameurl.name).set(reset_day)
+    
+
+    async def __a_update(self, nameurl: NameURL):
+
+        result = await self._a_get.get(nameurl.url)
+
+        total = result["monthly_bw_limit_b"]
+        usage = result["bw_counter_b"]
+        reset_day = result["bw_reset_day_of_month"] 
+
+
+        self.total.labels(name=nameurl.name).set(total)
+        self.usage.labels(name=nameurl.name).set(usage)
+        self.reset_day.labels(name=nameurl.name).set(reset_day)
+        
 
 
 
@@ -152,14 +200,18 @@ def main():
     # 生成
     jms = JMS(jmss)
 
-
     # 启动iexporter server
-    start_http_server(port=server_port, addr=server_addr)
+    wsgi, thread = start_http_server(port=server_port, addr=server_addr)
 
+
+    """
     while True:
         # jms实例
         jms.update_all()
         time.sleep(update_interval)
+    """
+
+    asyncio.run(jms.a_update_all(update_interval))
 
 
 if __name__ == "__main__":
