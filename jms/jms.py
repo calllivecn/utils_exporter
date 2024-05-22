@@ -141,7 +141,11 @@ class JMS:
 
             tasks = (self.__a_update(jms) for jms in self._list_name_url)
 
-            await asyncio.gather(*tasks)
+            try:
+                await asyncio.gather(*tasks)
+            except BaseException as e:
+                traceback.print_exception(e)
+
             await asyncio.sleep(sleep_)
 
     
