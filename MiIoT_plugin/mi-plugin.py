@@ -115,8 +115,11 @@ class MiDevice:
         try:
             alive_bool = plu.mi_device.switch_status()
         except exceptions.DeviceException as e:
-            print(f"请求: {plu}")
+            print(f"请求异常: {plu}")
+            # 之后的步骤，本次就不执行了
             alive_bool = False
+
+            return
         
         if alive_bool:
             alive = 1 
