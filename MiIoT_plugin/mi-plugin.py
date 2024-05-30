@@ -107,19 +107,15 @@ class MiDevice:
 
     def update_all(self):
         for plu in self._list_pluginlist:
-            self.__update(plu)
+            try:
+                self.__update(plu)
+            except exceptions.DeviceException as e:
+                print(f"请求异常: {plu}")
 
     
     def __update(self, plu: Plugincfg):
 
-        try:
-            alive_bool = plu.mi_device.switch_status()
-        except exceptions.DeviceException as e:
-            print(f"请求异常: {plu}")
-            # 之后的步骤，本次就不执行了
-            alive_bool = False
-
-            return
+        alive_bool = plu.mi_device.switch_status()
         
         if alive_bool:
             alive = 1 
