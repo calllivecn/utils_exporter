@@ -35,7 +35,7 @@ from miio_device import (
 
 CFG="""\
 [exporter_conf]
-address="0.0.0.0"
+address="::"
 port=19100
 # 指标更新间隔 单位 秒
 interval=10
