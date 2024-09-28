@@ -13,6 +13,8 @@ import subprocess
 from pathlib import Path
 from collections import OrderedDict
 
+from pprint import pprint
+
 
 try:
     import tomllib
@@ -50,17 +52,24 @@ class NvidiaSMI:
         self.timeout = timeout
 
 
-    def get_metric(self) -> Tuple[List[Any], List[Any]]:
+    def get_metric(self) -> List[Tuple[List[Any], List[Any]]]:
 
         labels_len = len(self.metric_labels)
         # gauges_len = len(self.metric_gauges)
 
         metrics = self.__exec(list(self.metric_labels.values()) + list(self.metric_gauges.values()))
 
-        return metrics[:labels_len], metrics[labels_len:]
+        # multi gpu
+        multi_gpu = []
+        for gpu in metrics:
+            multi_gpu.append((gpu[:labels_len], gpu[labels_len:]))
+
+        print("multi_gpu:")
+        pprint(multi_gpu)
+        return multi_gpu
 
 
-    def __exec(self, nvidia_querys: List[str]) -> List[Any]:
+    def __exec(self, nvidia_querys: List[str]) -> List[List[Any]]:
 
         query_args = ",".join(nvidia_querys)
 
@@ -85,10 +94,11 @@ class NvidiaSMI:
             fields = line.split(", ")
 
             # print(f"{fields=}", end="")
-
+            multi_gpu = []
             for field in fields:
-                l2.append(self.convert(field))
+                multi_gpu.append(self.convert(field))
 
+            l2.append(multi_gpu)
 
         # print(f"{l2=}")
 
@@ -121,23 +131,37 @@ class Executer:
         self.labels = labels
         self.gauges = gauges
 
-        self.gauges_obj = []
-        for gauge in self.gauges.keys():
-            self.gauges_obj.append(Gauge(gauge, gauge, labelnames=self.labels))
+
+        multi_gpu = self.smi.get_metric()
+        for labels_v, gauges_v in multi_gpu:
+
+            # 处理标签名：正则表达式 [a-zA-Z_][a-zA-Z0-9_]*
+            # labels_v = [field.replect(" -", "_") for field in labels_v]
+            
+
+            self.gauges_obj = []
+            for gauge in self.gauges.keys():
+                self.gauges_obj.append(Gauge(gauge, gauge, labelnames=labels))
+
+            # 创建Gauge 时，只需要一次/
+            break
+        
 
 
     def update_all(self):
 
-        labels = copy.deepcopy(self.labels)
-        gauges = copy.deepcopy(self.gauges)
+        multi_gpu = self.smi.get_metric()
 
-        labels_v, gauges_v = self.smi.get_metric()
+        for index, (labels_v, gauges_v) in enumerate(multi_gpu):
 
-        for i, label in enumerate(labels.keys()):
-            labels[label] = labels_v[i]
+            labels = copy.deepcopy(self.labels)
+            gauges = copy.deepcopy(self.gauges)
 
-        for i, gauge in enumerate(self.gauges_obj):
-            gauge.labels(**labels).set(gauges_v[i])
+            for i, label in enumerate(labels.keys()):
+                labels[label] = labels_v[i]
+
+            for i, gauge in enumerate(self.gauges_obj):
+                gauge.labels(**labels).set(gauges_v[i])
 
     
 
