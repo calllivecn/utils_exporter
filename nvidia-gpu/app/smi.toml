@@ -1,0 +1,39 @@
+[exporter_conf]
+address="::"
+port=19102
+interval=30
+
+# exporter 字段和 nvidia-smi 字段对应表
+# 使用 nvidia-smi --help-query-gpu 查询 有哪些字段
+#gpu_nvidia_count="count"
+[metric_labels]
+name="name"
+index="index"
+uuid="uuid"
+driver_verion="driver_version"
+
+# 这里需要查询的指标，可能会随着driver和硬件版本的变化而变化。
+# 请根据实际情况增加和减少指标。
+
+[metric_gauges]
+gpu_nvidia_utilization="utilization.gpu"
+gpu_nvidia_utilizaion_memory="utilization.memory"
+
+gpu_nvidia_memory_total="memory.total"
+gpu_nvidia_memory_reserved="memory.reserved"
+gpu_nvidia_memory_used="memory.used"
+gpu_nvidia_memory_free="memory.free"
+
+gpu_nvidia_power_usage="power.draw"
+gpu_nvidia_pwoer_limit="power.limit"
+gpu_nvidia_temperature="temperature.gpu"
+
+gpu_nvidia_utilization_encoder="utilization.encoder"
+gpu_nvidia_utilization_decoder="utilization.decoder"
+
+# 以下3个指标在 nvidia-driver-535 + ubuntu22.04 上没有
+gpu_nvidia_utilization_jpeg="utilization.jpeg"
+gpu_nvidia_utilization_ofa="utilization.ofa"
+
+gpu_nvidia_fan_speed="fan.speed"
+
