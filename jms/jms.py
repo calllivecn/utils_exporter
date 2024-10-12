@@ -10,11 +10,6 @@ import dataclasses
 from pathlib import Path
 from urllib import request
 
-from typing import (
-    List,
-    Dict,
-)
-
 try:
     import tomllib
 except ModuleNotFoundError:
@@ -119,7 +114,7 @@ class JMS:
 
     labels=["name"]
 
-    def __init__(self, nameurl: List[NameURL], proxy: str):
+    def __init__(self, nameurl: list[NameURL], proxy: str):
         self._list_name_url = nameurl
         
         self.total = Gauge("jms_total_bytes", "总共量", self.labels)

@@ -1,8 +1,6 @@
 
 from typing import (
     Any,
-    List,
-    Tuple,
 )
 
 import sys
@@ -52,7 +50,7 @@ class NvidiaSMI:
         self.timeout = timeout
 
 
-    def get_metric(self) -> List[Tuple[List[Any], List[Any]]]:
+    def get_metric(self) -> list[tuple[list[Any], list[Any]]]:
 
         labels_len = len(self.metric_labels)
         # gauges_len = len(self.metric_gauges)
@@ -69,7 +67,7 @@ class NvidiaSMI:
         return multi_gpu
 
 
-    def __exec(self, nvidia_querys: List[str]) -> List[List[Any]]:
+    def __exec(self, nvidia_querys: list[str]) -> list[list[Any]]:
 
         query_args = ",".join(nvidia_querys)
 

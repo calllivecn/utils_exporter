@@ -6,11 +6,6 @@ import argparse
 import dataclasses
 from pathlib import Path
 
-from typing import (
-    List,
-    Dict,
-)
-
 try:
     import tomllib
 except ModuleNotFoundError:
@@ -86,7 +81,7 @@ class MiDevice:
 
     labels=["name", "ip"]
 
-    def __init__(self, pluginlist: List[Plugincfg]):
+    def __init__(self, pluginlist: list[Plugincfg]):
         self._list_pluginlist = pluginlist
         
         # exporter info
