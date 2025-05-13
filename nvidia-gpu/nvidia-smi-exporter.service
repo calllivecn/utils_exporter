@@ -1,0 +1,11 @@
+[Unit]
+Description=nvidia-smi exporter 显卡状态统计
+
+
+[Service]
+Type=simple
+ExecStart=%h/.local/bin/nvidia-smi-exporter %h/.config/smi.toml
+
+[Install]
+WantedBy=default.target
+

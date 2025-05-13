@@ -2,9 +2,8 @@
 
 ## 使用 容器+pyinstaller 打包成单一可执行文件
 
-- 使用 `podman/docker build -t nvidia-smi-exporter .` 打包
+- 使用 `podman/docker build -v $(pwd)/dist:/dist -t nvidia-smi-exporter .` 打包
 
-- 然后 `podman/docker run -it --rm --name nvidia-smi-exporter bash`
+-  产物就在dist 目录下
 
-- 导出 可执行文件 `podman/docker cp nvidia-smi-exporter:/app/dist/nvidia-smi-exporter .`
 
