@@ -4,6 +4,6 @@
 
 - 使用 `podman/docker build -v $(pwd)/dist:/dist -t nvidia-smi-exporter .` 打包
 
--  产物就在dist 目录下
+- 产物就在dist 目录下
 
 
