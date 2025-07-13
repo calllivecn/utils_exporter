@@ -40,7 +40,7 @@ name="jms1"
 - 构建镜像
 
 ```shell
-podman/docker build -t jms\_exporter:latest .
+podman/docker build -t jms:latest .
 ```
 
 
