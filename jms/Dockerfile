@@ -6,5 +6,5 @@ RUN pip install --break-system-packages -r requireument.txt
 
 EXPOSE 19100
 
-CMD ["python", "/jms.py"]
+CMD ["python", "/jms.py", "-c", "/jms.toml"]
 
